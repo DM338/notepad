@@ -16,11 +16,11 @@
             height: 80vh;
             padding: 10px;
             box-sizing: border-box;
-            border: 1px solid #ccc;
             background-color: #fff;
             font-size: 16px;
             line-height: 1.6;
             white-space: pre-wrap;
+            outline: none; /* Убирает выделение */
         }
     </style>
 </head>
@@ -56,13 +56,23 @@
         // Listen for changes in Firebase
         onValue(notepadRef, (snapshot) => {
             if (snapshot.exists()) {
+                console.log('Data loaded from Firebase:', snapshot.val());
                 notepad.innerText = snapshot.val();
+            } else {
+                console.log('No data available');
             }
         });
 
         // Update Firebase when content changes
         notepad.addEventListener('input', () => {
-            set(notepadRef, notepad.innerText);
+            const newValue = notepad.innerText;
+            set(notepadRef, newValue)
+                .then(() => {
+                    console.log('Data saved to Firebase:', newValue);
+                })
+                .catch((error) => {
+                    console.error('Error saving data to Firebase:', error);
+                });
         });
     </script>
 </body>
