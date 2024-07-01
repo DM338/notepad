@@ -53,27 +53,39 @@
         // Reference to the database path
         const notepadRef = ref(database, 'notepadContent');
 
+        let isUpdating = false;
+
         // Listen for changes in Firebase
         onValue(notepadRef, (snapshot) => {
-            if (snapshot.exists()) {
+            if (snapshot.exists() && !isUpdating) {
                 console.log('Data loaded from Firebase:', snapshot.val());
                 notepad.innerText = snapshot.val();
-            } else {
-                console.log('No data available');
             }
         });
 
+        // Debounce function to limit the rate of updates
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
         // Update Firebase when content changes
-        notepad.addEventListener('input', () => {
+        notepad.addEventListener('input', debounce(() => {
             const newValue = notepad.innerText;
+            isUpdating = true;
             set(notepadRef, newValue)
                 .then(() => {
                     console.log('Data saved to Firebase:', newValue);
+                    isUpdating = false;
                 })
                 .catch((error) => {
                     console.error('Error saving data to Firebase:', error);
+                    isUpdating = false;
                 });
-        });
+        }, 300)); // Adjust debounce delay as needed
     </script>
 </body>
 </html>
